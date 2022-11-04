@@ -1,0 +1,43 @@
+{
+	"name": "mjmgr",
+	"version": "0.1.0",
+	"description": "An MJML React email management framework",
+	"main": "index.js",
+	"scripts": {
+		"build": "node esbuild.conf.js",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"bin": {
+		"mjmgr": "./dist/index.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/siguelaola/mjmgr.git"
+	},
+	"author": "Jerome Leclanche <jerome@leclan.ch>",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/siguelaola/mjmgr/issues"
+	},
+	"homepage": "https://github.com/siguelaola/mjmgr#readme",
+	"prettier": {
+		"useTabs": true,
+		"printWidth": 88,
+		"tabWidth": 4
+	},
+	"dependencies": {
+		"@faire/mjml-react": "^2.1.4",
+		"@sendgrid/client": "^7.7.0",
+		"conf": "^10.2.0",
+		"i18next": "^22.0.4",
+		"mjml": "^4.13.0",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0"
+	},
+	"devDependencies": {
+		"@types/node": "^18.11.9",
+		"esbuild": "^0.15.13",
+		"prettier": "^2.7.1",
+		"typescript": "^4.8.4"
+	}
+}

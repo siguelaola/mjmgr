@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"emitDeclarationOnly": true,
+		"declaration": true,
+		"strict": true,
+		"forceConsistentCasingInFileNames": true,
+		"noUncheckedIndexedAccess": true,
+		"resolveJsonModule": true,
+		"esModuleInterop": true
+	},
+	"include": ["src/**/*.ts"],
+	"exclude": ["node_modules"]
+}
