@@ -31,8 +31,8 @@
 		"conf": "^10.2.0",
 		"i18next": "^22.0.4",
 		"mjml": "^4.13.0",
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0"
+		"react": "^17.0.0",
+		"react-dom": "^17.0.0"
 	},
 	"devDependencies": {
 		"@types/node": "^18.11.9",
