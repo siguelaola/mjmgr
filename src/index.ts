@@ -38,7 +38,7 @@ export default (async () => {
 
 		for (const file of files) {
 			const modulePath = resolve(join(emailsDir, file));
-			const component = (await import(modulePath)).default;
+			const component = (await import(modulePath)).default.default;
 
 			const { html } = render(component({ locale, t }), {
 				validationLevel,
