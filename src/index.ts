@@ -10,6 +10,11 @@ import SendgridBackend from "./backends/sendgrid";
 
 type ValidationLevel = "strict" | "soft" | "skip";
 
+const BACKENDS = {
+	fs: FilesystemBackend,
+	sendgrid: SendgridBackend,
+};
+
 export default (async () => {
 	const config = new Conf({
 		cwd: ".",
@@ -19,11 +24,20 @@ export default (async () => {
 
 	const supportedLanguages = config.get("supported_languages", ["en"]) as string[];
 	const validationLevel = config.get("validation_level", "strict") as ValidationLevel;
-	const outDir = config.get("output_dir", "./out/") as string;
+
 	const i18nPath = config.get("i18n_path", "./src/i18n.json") as string;
 	const emailsDir = config.get("emails_dir", "./src/emails/") as string;
 
 	const resources = JSON.parse((await readFile(resolve(i18nPath))).toString());
+	const enabledBackends = config.get("backends", ["fs"]) as string[];
+	const backends = enabledBackends.map((backend) => {
+		if (backend in BACKENDS) {
+			// @ts-ignore
+			return new BACKENDS[backend](config);
+		} else {
+			throw new Error(`Unknown backend in configuration: ${backend}`);
+		}
+	});
 
 	i18next.init({
 		resources: resources,
@@ -31,7 +45,6 @@ export default (async () => {
 	});
 
 	const files = await readdir(emailsDir);
-	const backends = [new FilesystemBackend(config), new SendgridBackend(config)];
 
 	for (const locale of supportedLanguages) {
 		const t = await i18next.changeLanguage(locale);
