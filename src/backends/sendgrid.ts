@@ -70,6 +70,30 @@ class SendgridBackend {
 		return id;
 	};
 
+	public uploadImage = async (filename: string, data: Blob) => {
+		const body = new FormData();
+		body.append("upload", data, filename);
+		const [response] = await client.request({
+			method: "POST",
+			url: "/v3/images",
+			headers: {
+				"content-type": "multipart/form-data",
+			},
+			body,
+		});
+
+		// @ts-ignore
+		const { id, url } = response.body;
+
+		if (!id || !url) {
+			throw new Error(
+				`Did not receive an ID or URL when uploading image ${filename}`
+			);
+		}
+
+		return { id, url };
+	};
+
 	public write = async (templateName: string, body: string) => {
 		const statePath = `${this.name}.${templateName}`;
 
