@@ -25,7 +25,7 @@ export default (async () => {
 	const supportedLanguages = config.get("supported_languages", ["en"]) as string[];
 	const validationLevel = config.get("validation_level", "strict") as ValidationLevel;
 
-	const i18nPath = config.get("i18n_path", "./src/i18n.json") as string;
+	const i18nPath = config.get("i18n.path", "./src/i18n.json") as string;
 	const emailsDir = config.get("emails_dir", "./src/emails/") as string;
 
 	const resources = JSON.parse((await readFile(resolve(i18nPath))).toString());
@@ -38,11 +38,9 @@ export default (async () => {
 			throw new Error(`Unknown backend in configuration: ${backend}`);
 		}
 	});
+	const i18nConfig = config.get("i18n.config", {}) as Object;
 
-	i18next.init({
-		resources: resources,
-		defaultNS: "common",
-	});
+	i18next.init({ resources, ...i18nConfig });
 
 	const files = await readdir(emailsDir);
 
