@@ -31,7 +31,7 @@ export default (async () => {
 	});
 
 	const files = await readdir(emailsDir);
-	const backends = [new FilesystemBackend(outDir), new SendgridBackend()];
+	const backends = [new FilesystemBackend(config), new SendgridBackend(config)];
 
 	for (const locale of supportedLanguages) {
 		const t = await i18next.changeLanguage(locale);

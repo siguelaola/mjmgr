@@ -1,3 +1,4 @@
+import Conf from "conf";
 import { mkdirSync } from "fs";
 import { writeFile } from "fs/promises";
 import { join } from "path";
@@ -5,8 +6,8 @@ import { join } from "path";
 class FilesystemBackend {
 	basePath: string;
 
-	constructor(basePath: string) {
-		this.basePath = basePath;
+	constructor(config: Conf) {
+		this.basePath = config.get("output_dir", "./out/") as string;
 
 		try {
 			mkdirSync(this.basePath);

@@ -8,7 +8,7 @@ class SendgridBackend {
 	apiKey: string;
 	state: Conf;
 
-	constructor() {
+	constructor(config: Conf) {
 		if (env.SENDGRID_API_KEY) {
 			this.apiKey = env.SENDGRID_API_KEY;
 		} else {
