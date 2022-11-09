@@ -4,7 +4,8 @@ import { render } from "@faire/mjml-react";
 import Conf from "conf";
 import { readdir, readFile } from "fs/promises";
 import i18next from "i18next";
-import { join, parse, resolve } from "path";
+import { parse } from "node-html-parser";
+import { join, parse as parsePath, resolve } from "path";
 import FilesystemBackend from "./backends/filesystem";
 import SendgridBackend from "./backends/sendgrid";
 
@@ -14,6 +15,9 @@ const BACKENDS = {
 	fs: FilesystemBackend,
 	sendgrid: SendgridBackend,
 };
+
+const extractTitle = (html: string) =>
+	parse(html).querySelector("title")?.textContent || "";
 
 export default (async () => {
 	const config = new Conf({
@@ -55,11 +59,13 @@ export default (async () => {
 				validationLevel,
 			});
 
-			const templateBaseName = parse(file).name;
+			const title = extractTitle(html);
+
+			const templateBaseName = parsePath(file).name;
 			const templateName = `${templateBaseName}_${locale}`;
 
 			backends.forEach(async (backend) => {
-				await backend.write(templateName, html);
+				await backend.write(templateName, html, title);
 			});
 		}
 	}

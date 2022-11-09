@@ -19,7 +19,7 @@ class FilesystemBackend {
 		}
 	}
 
-	public write = async (templateName: string, htmlBody: string) => {
+	public write = async (templateName: string, htmlBody: string, subject: string) => {
 		const path = join(this.basePath, `${templateName}.html`);
 		await writeFile(path, htmlBody);
 		console.log(`Generated ${path}`);

@@ -43,7 +43,8 @@ class SendgridBackend {
 	public createNewTemplateVersion = async (
 		templateId: string,
 		versionName: string,
-		htmlBody: string
+		htmlBody: string,
+		subject: string
 	) => {
 		const [response] = await client.request({
 			method: "POST",
@@ -55,6 +56,7 @@ class SendgridBackend {
 				name: versionName,
 				plain_content: "",
 				template_id: templateId,
+				subject: subject,
 			},
 		});
 
@@ -94,7 +96,7 @@ class SendgridBackend {
 		return { id, url };
 	};
 
-	public write = async (templateName: string, body: string) => {
+	public write = async (templateName: string, body: string, subject: string) => {
 		const statePath = `${this.name}.${templateName}`;
 
 		const digest = createHash("sha256").update(body).digest("hex");
@@ -114,12 +116,14 @@ class SendgridBackend {
 				versionId = await this.createNewTemplateVersion(
 					templateId,
 					digest,
-					body
+					body,
+					subject
 				);
+				this.state.set(`${statePath}.version`, versionId);
+				this.state.set(`${statePath}.sha256`, digest);
 				console.log(
 					`Sendgrid: New version (${versionId}) for template ${templateName} (${templateId})`
 				);
-				this.state.set(`${statePath}.version`, versionId);
 			}
 		} else {
 			const templateId = await this.createNewTemplate(templateName);
@@ -129,13 +133,14 @@ class SendgridBackend {
 			const versionId = await this.createNewTemplateVersion(
 				templateId,
 				digest,
-				body
+				body,
+				subject
 			);
 			this.state.set(`${statePath}.version`, versionId);
+			this.state.set(`${statePath}.sha256`, digest);
 			console.log(
 				`Sendgrid: New version (${versionId}) for template ${templateName} (${templateId})`
 			);
-			this.state.set(`${statePath}.sha256`, digest);
 		}
 	};
 }
