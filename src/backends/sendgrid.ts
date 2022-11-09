@@ -37,7 +37,7 @@ class SendgridBackend {
 			);
 		}
 
-		return id;
+		return id as string;
 	};
 
 	public createNewTemplateVersion = async (
@@ -69,7 +69,19 @@ class SendgridBackend {
 			);
 		}
 
-		return id;
+		return id as string;
+	};
+
+	public activateVersion = async (templateId: string, versionId: string) => {
+		const [response] = await client.request({
+			method: "POST",
+			url: `/v3/templates/${templateId}/versions/${versionId}/activate`,
+		});
+		console.log(
+			`Sendgrid: Activated version ${versionId} for template ${templateId}`
+		);
+
+		return response;
 	};
 
 	public uploadImage = async (filename: string, data: Blob) => {
@@ -105,7 +117,7 @@ class SendgridBackend {
 		if (templateId) {
 			// Template already exists. Check for versions.
 			const existingDigest = this.state.get(`${statePath}.sha256`);
-			let versionId = this.state.get(`${statePath}.version`);
+			let versionId = this.state.get(`${statePath}.version`) as string;
 			if (versionId && digest === existingDigest) {
 				// A version already exists, and the last digest is unchanged.
 				console.log(
@@ -124,6 +136,7 @@ class SendgridBackend {
 				console.log(
 					`Sendgrid: New version (${versionId}) for template ${templateName} (${templateId})`
 				);
+				await this.activateVersion(templateId, versionId);
 			}
 		} else {
 			const templateId = await this.createNewTemplate(templateName);
@@ -141,6 +154,7 @@ class SendgridBackend {
 			console.log(
 				`Sendgrid: New version (${versionId}) for template ${templateName} (${templateId})`
 			);
+			await this.activateVersion(templateId, versionId);
 		}
 	};
 }
