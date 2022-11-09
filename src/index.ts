@@ -59,7 +59,7 @@ export default (async () => {
 				validationLevel,
 			});
 
-			const title = extractTitle(html);
+			const title = extractTitle(html).trim();
 
 			const templateBaseName = parsePath(file).name;
 			const templateName = `${templateBaseName}_${locale}`;
