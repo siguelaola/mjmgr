@@ -26,11 +26,11 @@ class MailgunBackend {
 			projectName: "mjmgr",
 			configName: "mjmgr_state",
 		});
-		// @ts-ignore
 		this.client = new Axios({
 			...axios.defaults,
 			baseURL: `https://api.mailgun.net/v3/${this.domain}`,
 			auth: { username: "api", password: this.apiKey },
+			headers: {},
 		});
 	}
 

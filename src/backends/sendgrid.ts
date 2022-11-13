@@ -1,4 +1,4 @@
-import client from "@sendgrid/client";
+import axios, { Axios } from "axios";
 import Conf from "conf";
 import { env } from "process";
 import { EmailInfo } from "../types";
@@ -7,29 +7,36 @@ class SendgridBackend {
 	name = "sendgrid";
 	apiKey: string;
 	state: Conf;
+	client: Axios;
 
 	constructor(config: Conf) {
-		if (env.SENDGRID_API_KEY) {
-			this.apiKey = env.SENDGRID_API_KEY;
-		} else {
+		const apiKey = env.SENDGRID_API_KEY;
+		if (!apiKey) {
 			throw new Error("Environment variable SENDGRID_API_KEY needs to be set");
+		} else if (!apiKey.startsWith("SG.")) {
+			throw new Error("SENDGRID_API_KEY must start with the prefix 'SG.'");
+		} else {
+			this.apiKey = apiKey;
 		}
 		this.state = new Conf({
 			projectName: "mjmgr",
 			configName: "mjmgr_state",
 		});
-		client.setApiKey(this.apiKey);
+		this.client = new Axios({
+			...axios.defaults,
+			baseURL: "https://api.sendgrid.com/",
+			headers: { accept: "application/json", authorization: `Bearer ${apiKey}` },
+		});
 	}
 
 	public createNewTemplate = async (templateName: string) => {
-		const [response] = await client.request({
+		const response = await this.client.request({
 			method: "POST",
 			url: "/v3/templates",
-			body: { generation: "dynamic", name: templateName },
+			data: { generation: "dynamic", name: templateName },
 		});
 
-		// @ts-ignore
-		const id = response.body["id"];
+		const id = response.data["id"];
 
 		if (!id) {
 			throw new Error(
@@ -46,10 +53,10 @@ class SendgridBackend {
 		htmlBody: string,
 		subject: string
 	) => {
-		const [response] = await client.request({
+		const response = await this.client.request({
 			method: "POST",
 			url: `/v3/templates/${templateId}/versions`,
-			body: {
+			data: {
 				editor: "code",
 				generate_plain_content: true,
 				html_content: htmlBody,
@@ -60,8 +67,7 @@ class SendgridBackend {
 			},
 		});
 
-		// @ts-ignore
-		const id = response.body["id"];
+		const id = response.data["id"];
 
 		if (!id) {
 			throw new Error(
@@ -73,7 +79,7 @@ class SendgridBackend {
 	};
 
 	public activateVersion = async (templateId: string, versionId: string) => {
-		const [response] = await client.request({
+		const response = await this.client.request({
 			method: "POST",
 			url: `/v3/templates/${templateId}/versions/${versionId}/activate`,
 		});
@@ -84,20 +90,19 @@ class SendgridBackend {
 		return response;
 	};
 
-	public uploadImage = async (filename: string, data: Blob) => {
-		const body = new FormData();
-		body.append("upload", data, filename);
-		const [response] = await client.request({
+	public uploadImage = async (filename: string, imageData: Blob) => {
+		const data = new FormData();
+		data.append("upload", imageData, filename);
+		const response = await this.client.request({
 			method: "POST",
 			url: "/v3/images",
 			headers: {
 				"content-type": "multipart/form-data",
 			},
-			body,
+			data,
 		});
 
-		// @ts-ignore
-		const { id, url } = response.body;
+		const { id, url } = response.data;
 
 		if (!id || !url) {
 			throw new Error(
