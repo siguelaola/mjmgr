@@ -2,6 +2,7 @@ import Conf from "conf";
 import { mkdirSync } from "fs";
 import { writeFile } from "fs/promises";
 import { join } from "path";
+import { EmailInfo } from "../types";
 
 class FilesystemBackend {
 	basePath: string;
@@ -19,9 +20,9 @@ class FilesystemBackend {
 		}
 	}
 
-	public write = async (templateName: string, htmlBody: string, subject: string) => {
-		const path = join(this.basePath, `${templateName}.html`);
-		await writeFile(path, htmlBody);
+	public write = async ({ name, html }: EmailInfo) => {
+		const path = join(this.basePath, `${name}.html`);
+		await writeFile(path, html);
 		console.log(`Generated ${path}`);
 	};
 }

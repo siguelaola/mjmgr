@@ -2,6 +2,7 @@ import client from "@sendgrid/client";
 import Conf from "conf";
 import { createHash } from "crypto";
 import { env } from "process";
+import { EmailInfo } from "../types";
 
 class SendgridBackend {
 	name = "sendgrid";
@@ -108,10 +109,10 @@ class SendgridBackend {
 		return { id, url };
 	};
 
-	public write = async (templateName: string, body: string, subject: string) => {
-		const statePath = `${this.name}.${templateName}`;
+	public write = async ({ name, html, title }: EmailInfo) => {
+		const statePath = `${this.name}.${name}`;
 
-		const digest = createHash("sha256").update(body).digest("hex");
+		const digest = createHash("sha256").update(html).digest("hex");
 
 		const templateId = this.state.get(`${statePath}.id`) as string;
 		if (templateId) {
@@ -120,39 +121,37 @@ class SendgridBackend {
 			let versionId = this.state.get(`${statePath}.version`) as string;
 			if (versionId && digest === existingDigest) {
 				// A version already exists, and the last digest is unchanged.
-				console.log(
-					`Sendgrid: Template ${templateName} (${templateId}) is unchanged.`
-				);
+				console.log(`Sendgrid: Template ${name} (${templateId}) is unchanged.`);
 			} else {
 				// Update the template on sendgrid
 				versionId = await this.createNewTemplateVersion(
 					templateId,
 					digest,
-					body,
-					subject
+					html,
+					title
 				);
 				this.state.set(`${statePath}.version`, versionId);
 				this.state.set(`${statePath}.sha256`, digest);
 				console.log(
-					`Sendgrid: New version (${versionId}) for template ${templateName} (${templateId})`
+					`Sendgrid: New version (${versionId}) for template ${name} (${templateId})`
 				);
 				await this.activateVersion(templateId, versionId);
 			}
 		} else {
-			const templateId = await this.createNewTemplate(templateName);
+			const templateId = await this.createNewTemplate(name);
 			this.state.set(`${statePath}.id`, templateId);
-			console.log(`Sendgrid: Created template ${templateName} (${templateId})`);
+			console.log(`Sendgrid: Created template ${name} (${templateId})`);
 
 			const versionId = await this.createNewTemplateVersion(
 				templateId,
 				digest,
-				body,
-				subject
+				html,
+				title
 			);
 			this.state.set(`${statePath}.version`, versionId);
 			this.state.set(`${statePath}.sha256`, digest);
 			console.log(
-				`Sendgrid: New version (${versionId}) for template ${templateName} (${templateId})`
+				`Sendgrid: New version (${versionId}) for template ${name} (${templateId})`
 			);
 			await this.activateVersion(templateId, versionId);
 		}

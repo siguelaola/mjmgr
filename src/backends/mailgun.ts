@@ -3,6 +3,7 @@ import Conf from "conf";
 import { createHash } from "crypto";
 import FormData from "form-data";
 import { env } from "process";
+import { EmailInfo } from "../types";
 
 class MailgunBackend {
 	name = "mailgun";
@@ -55,16 +56,11 @@ class MailgunBackend {
 		return response;
 	};
 
-	public write = async (templateName: string, body: string, subject: string) => {
-		const digest = createHash("sha256").update(body).digest("hex");
+	public write = async ({ name, html }: EmailInfo) => {
+		const digest = createHash("sha256").update(html).digest("hex");
 
-		const templateResponse = await this.createNewTemplate(
-			templateName,
-			digest,
-			body,
-			""
-		);
-		console.log(`Mailgun: Created template ${templateName}`);
+		const templateResponse = await this.createNewTemplate(name, digest, html, "");
+		console.log(`Mailgun: Created template ${name}`);
 		console.log(templateResponse.data);
 	};
 }

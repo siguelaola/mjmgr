@@ -9,6 +9,7 @@ import { join, parse as parsePath, resolve } from "path";
 import FilesystemBackend from "./backends/filesystem";
 import MailgunBackend from "./backends/mailgun";
 import SendgridBackend from "./backends/sendgrid";
+import { Backend } from "./types";
 
 type ValidationLevel = "strict" | "soft" | "skip";
 
@@ -63,17 +64,16 @@ export default (async () => {
 				continue;
 			}
 
-			const { html } = render(component({ locale, t }), {
-				validationLevel,
-			});
+			const email = component({ locale, t });
 
+			const { html } = render(email, { validationLevel });
 			const title = extractTitle(html).trim();
 
-			const templateBaseName = parsePath(file).name;
-			const templateName = `${templateBaseName}_${locale}`;
+			const baseName = parsePath(file).name;
+			const name = `${baseName}_${locale}`;
 
-			backends.forEach(async (backend) => {
-				await backend.write(templateName, html, title);
+			backends.forEach(async (backend: Backend) => {
+				await backend.write({ name, baseName, title, html });
 			});
 		}
 	}
