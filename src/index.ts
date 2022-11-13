@@ -71,11 +71,19 @@ export default (async () => {
 			const title = extractTitle(html).trim();
 
 			const baseName = parsePath(file).name;
-			const name = `${baseName}_${locale}`;
+			const name = `${baseName}_${locale}`.toLowerCase();
+			const displayName = `${baseName} (${locale})`;
 			const digest = createHash("sha256").update(html).digest("hex");
 
 			backends.forEach(async (backend: Backend) => {
-				await backend.write({ name, baseName, title, html, digest });
+				await backend.write({
+					name,
+					displayName,
+					baseName,
+					title,
+					html,
+					digest,
+				});
 			});
 		}
 	}

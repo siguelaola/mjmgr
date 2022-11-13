@@ -113,9 +113,8 @@ class SendgridBackend {
 		return { id, url };
 	};
 
-	public write = async ({ name, html, title, digest }: EmailInfo) => {
+	public write = async ({ name, displayName, html, title, digest }: EmailInfo) => {
 		const statePath = `${this.name}.${name}`;
-
 		const templateId = this.state.get(`${statePath}.id`) as string;
 		if (templateId) {
 			// Template already exists. Check for versions.
@@ -123,7 +122,9 @@ class SendgridBackend {
 			let versionId = this.state.get(`${statePath}.version`) as string;
 			if (versionId && digest === existingDigest) {
 				// A version already exists, and the last digest is unchanged.
-				console.log(`Sendgrid: Template ${name} (${templateId}) is unchanged.`);
+				console.log(
+					`Sendgrid: Template ${displayName} (${templateId}) is unchanged.`
+				);
 			} else {
 				// Update the template on sendgrid
 				versionId = await this.createNewTemplateVersion(
@@ -135,14 +136,14 @@ class SendgridBackend {
 				this.state.set(`${statePath}.version`, versionId);
 				this.state.set(`${statePath}.sha256`, digest);
 				console.log(
-					`Sendgrid: New version (${versionId}) for template ${name} (${templateId})`
+					`Sendgrid: New version (${versionId}) for template ${displayName} (${templateId})`
 				);
 				await this.activateVersion(templateId, versionId);
 			}
 		} else {
-			const templateId = await this.createNewTemplate(name);
+			const templateId = await this.createNewTemplate(displayName);
 			this.state.set(`${statePath}.id`, templateId);
-			console.log(`Sendgrid: Created template ${name} (${templateId})`);
+			console.log(`Sendgrid: Created template ${displayName} (${templateId})`);
 
 			const versionId = await this.createNewTemplateVersion(
 				templateId,
@@ -153,7 +154,7 @@ class SendgridBackend {
 			this.state.set(`${statePath}.version`, versionId);
 			this.state.set(`${statePath}.sha256`, digest);
 			console.log(
-				`Sendgrid: New version (${versionId}) for template ${name} (${templateId})`
+				`Sendgrid: New version (${versionId}) for template ${displayName} (${templateId})`
 			);
 			await this.activateVersion(templateId, versionId);
 		}

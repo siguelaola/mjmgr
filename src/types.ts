@@ -2,6 +2,7 @@ import type Conf from "conf";
 
 export interface EmailInfo {
 	name: string;
+	displayName: string;
 	baseName: string;
 	title: string;
 	html: string;
