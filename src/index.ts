@@ -2,6 +2,7 @@
 
 import { render } from "@faire/mjml-react";
 import Conf from "conf";
+import { createHash } from "crypto";
 import { readdir, readFile } from "fs/promises";
 import i18next from "i18next";
 import { parse } from "node-html-parser";
@@ -71,9 +72,10 @@ export default (async () => {
 
 			const baseName = parsePath(file).name;
 			const name = `${baseName}_${locale}`;
+			const digest = createHash("sha256").update(html).digest("hex");
 
 			backends.forEach(async (backend: Backend) => {
-				await backend.write({ name, baseName, title, html });
+				await backend.write({ name, baseName, title, html, digest });
 			});
 		}
 	}

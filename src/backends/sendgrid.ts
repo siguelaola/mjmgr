@@ -1,6 +1,5 @@
 import client from "@sendgrid/client";
 import Conf from "conf";
-import { createHash } from "crypto";
 import { env } from "process";
 import { EmailInfo } from "../types";
 
@@ -109,10 +108,8 @@ class SendgridBackend {
 		return { id, url };
 	};
 
-	public write = async ({ name, html, title }: EmailInfo) => {
+	public write = async ({ name, html, title, digest }: EmailInfo) => {
 		const statePath = `${this.name}.${name}`;
-
-		const digest = createHash("sha256").update(html).digest("hex");
 
 		const templateId = this.state.get(`${statePath}.id`) as string;
 		if (templateId) {

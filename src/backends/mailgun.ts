@@ -1,6 +1,5 @@
 import axios, { Axios } from "axios";
 import Conf from "conf";
-import { createHash } from "crypto";
 import FormData from "form-data";
 import { env } from "process";
 import { EmailInfo } from "../types";
@@ -56,9 +55,7 @@ class MailgunBackend {
 		return response;
 	};
 
-	public write = async ({ name, html }: EmailInfo) => {
-		const digest = createHash("sha256").update(html).digest("hex");
-
+	public write = async ({ name, html, digest }: EmailInfo) => {
 		const templateResponse = await this.createNewTemplate(name, digest, html, "");
 		console.log(`Mailgun: Created template ${name}`);
 		console.log(templateResponse.data);

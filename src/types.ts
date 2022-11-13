@@ -5,6 +5,7 @@ export interface EmailInfo {
 	baseName: string;
 	title: string;
 	html: string;
+	digest: string;
 }
 
 export interface Backend {
