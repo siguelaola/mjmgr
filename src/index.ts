@@ -53,7 +53,13 @@ export default (async () => {
 
 		for (const file of files) {
 			const modulePath = resolve(join(emailsDir, file));
-			const component = (await import(modulePath)).default.default;
+			const imp = await import(modulePath);
+			const component = imp.default.default;
+
+			if (!component) {
+				console.error(`Invalid export in ${modulePath}: ${component}`);
+				continue;
+			}
 
 			const { html } = render(component({ locale, t }), {
 				validationLevel,
