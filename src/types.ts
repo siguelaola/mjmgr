@@ -12,3 +12,16 @@ export interface Backend {
 	constructor: (conf: Conf) => void;
 	write: (info: EmailInfo) => Promise<void>;
 }
+
+export interface MailgunTemplate {
+	name: string;
+	description: string;
+	createdAt: string;
+	createdBy: string;
+	id: string;
+}
+
+export interface MailgunTemplateResponse {
+	message: string;
+	template: MailgunTemplate;
+}

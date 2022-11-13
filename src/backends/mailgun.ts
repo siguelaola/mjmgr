@@ -1,8 +1,8 @@
-import axios, { Axios } from "axios";
+import axios, { Axios, AxiosError } from "axios";
 import Conf from "conf";
 import FormData from "form-data";
 import { env } from "process";
-import { EmailInfo } from "../types";
+import { EmailInfo, MailgunTemplateResponse } from "../types";
 
 class MailgunBackend {
 	name = "mailgun";
@@ -46,7 +46,7 @@ class MailgunBackend {
 		fd.append("template", body);
 		fd.append("engine", "handlebars");
 		fd.append("comment", comment);
-		const response = await this.client.request({
+		const response = await this.client.request<MailgunTemplateResponse>({
 			method: "POST",
 			url: "/templates",
 			data: fd,
