@@ -7,6 +7,7 @@ import i18next from "i18next";
 import { parse } from "node-html-parser";
 import { join, parse as parsePath, resolve } from "path";
 import FilesystemBackend from "./backends/filesystem";
+import MailgunBackend from "./backends/mailgun";
 import SendgridBackend from "./backends/sendgrid";
 
 type ValidationLevel = "strict" | "soft" | "skip";
@@ -14,6 +15,7 @@ type ValidationLevel = "strict" | "soft" | "skip";
 const BACKENDS = {
 	fs: FilesystemBackend,
 	sendgrid: SendgridBackend,
+	mailgun: MailgunBackend,
 };
 
 const extractTitle = (html: string) =>
