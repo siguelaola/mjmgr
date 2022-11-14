@@ -57,6 +57,7 @@ class MailgunBackend extends RemoteBackend {
 		fd.append("tag", tag);
 		fd.append("template", email.html);
 		fd.append("engine", "handlebars");
+		fd.append("active", "true");
 		const response = await this.client.request<MailgunTemplateResponse>({
 			method: "POST",
 			url: `/templates/${email.name}/versions`,
