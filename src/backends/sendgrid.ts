@@ -1,10 +1,10 @@
 import axios, { Axios } from "axios";
 import Conf from "conf";
 import { env } from "process";
-import { BaseBackend } from ".";
+import { RemoteBackend } from ".";
 import { EmailInfo } from "../types";
 
-class SendgridBackend extends BaseBackend {
+class SendgridBackend extends RemoteBackend {
 	name = "sendgrid";
 	apiKey: string;
 	client: Axios;
@@ -26,53 +26,53 @@ class SendgridBackend extends BaseBackend {
 		});
 	}
 
-	public createNewTemplate = async (templateName: string) => {
+	public createNewTemplate = async (email: EmailInfo): Promise<[string, string]> => {
 		const response = await this.client.request({
 			method: "POST",
 			url: "/v3/templates",
-			data: { generation: "dynamic", name: templateName },
+			data: { generation: "dynamic", name: email.name },
 		});
 
-		const id = response.data["id"];
-
-		if (!id) {
+		const templateId: string = response.data["id"];
+		if (!templateId) {
 			throw new Error(
-				`Did not receive an ID creating sendgrid template ${templateName}`
+				`Did not receive an ID creating sendgrid template ${email.name}`
 			);
 		}
 
-		return id as string;
+		const [versionId] = await this.createNewTemplateVersion(templateId, email);
+
+		return [templateId, versionId];
 	};
 
 	public createNewTemplateVersion = async (
-		templateId: string,
-		versionName: string,
-		htmlBody: string,
-		subject: string
-	) => {
+		template: string,
+		email: EmailInfo
+	): Promise<[string]> => {
 		const response = await this.client.request({
 			method: "POST",
-			url: `/v3/templates/${templateId}/versions`,
+			url: `/v3/templates/${template}/versions`,
 			data: {
 				editor: "code",
 				generate_plain_content: true,
-				html_content: htmlBody,
-				name: versionName,
+				html_content: email.html,
+				name: email.digest,
 				plain_content: "",
-				template_id: templateId,
-				subject: subject,
+				template_id: template,
+				subject: email.title,
 			},
 		});
 
-		const id = response.data["id"];
-
-		if (!id) {
+		const versionId: string = response.data["id"];
+		if (!versionId) {
 			throw new Error(
-				`Did not receive an ID creating sendgrid template version ${versionName} for ${templateId}`
+				`Did not receive an ID creating sendgrid template version ${email.digest} for ${template}`
 			);
 		}
 
-		return id as string;
+		await this.activateVersion(template, versionId);
+
+		return [versionId];
 	};
 
 	public activateVersion = async (templateId: string, versionId: string) => {
@@ -80,9 +80,6 @@ class SendgridBackend extends BaseBackend {
 			method: "POST",
 			url: `/v3/templates/${templateId}/versions/${versionId}/activate`,
 		});
-		console.log(
-			`Sendgrid: Activated version ${versionId} for template ${templateId}`
-		);
 
 		return response;
 	};
@@ -108,53 +105,6 @@ class SendgridBackend extends BaseBackend {
 		}
 
 		return { id, url };
-	};
-
-	public write = async ({ name, displayName, html, title, digest }: EmailInfo) => {
-		const statePath = `${this.name}.${name}`;
-		const templateId = this.state.get(`${statePath}.id`) as string;
-		if (templateId) {
-			// Template already exists. Check for versions.
-			const existingDigest = this.state.get(`${statePath}.sha256`);
-			let versionId = this.state.get(`${statePath}.version`) as string;
-			if (versionId && digest === existingDigest) {
-				// A version already exists, and the last digest is unchanged.
-				console.log(
-					`Sendgrid: Template ${displayName} (${templateId}) is unchanged.`
-				);
-			} else {
-				// Update the template on sendgrid
-				versionId = await this.createNewTemplateVersion(
-					templateId,
-					digest,
-					html,
-					title
-				);
-				this.state.set(`${statePath}.version`, versionId);
-				this.state.set(`${statePath}.sha256`, digest);
-				console.log(
-					`Sendgrid: New version (${versionId}) for template ${displayName} (${templateId})`
-				);
-				await this.activateVersion(templateId, versionId);
-			}
-		} else {
-			const templateId = await this.createNewTemplate(displayName);
-			this.state.set(`${statePath}.id`, templateId);
-			console.log(`Sendgrid: Created template ${displayName} (${templateId})`);
-
-			const versionId = await this.createNewTemplateVersion(
-				templateId,
-				digest,
-				html,
-				title
-			);
-			this.state.set(`${statePath}.version`, versionId);
-			this.state.set(`${statePath}.sha256`, digest);
-			console.log(
-				`Sendgrid: New version (${versionId}) for template ${displayName} (${templateId})`
-			);
-			await this.activateVersion(templateId, versionId);
-		}
 	};
 }
 
