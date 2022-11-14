@@ -1,4 +1,4 @@
-import axios, { Axios, AxiosError } from "axios";
+import axios, { Axios } from "axios";
 import Conf from "conf";
 import FormData from "form-data";
 import { env } from "process";
@@ -55,10 +55,66 @@ class MailgunBackend {
 		return response;
 	};
 
-	public write = async ({ name, html, digest }: EmailInfo) => {
-		const templateResponse = await this.createNewTemplate(name, digest, html, "");
-		console.log(`Mailgun: Created template ${name}`);
-		console.log(templateResponse.data);
+	public createNewTemplateVersion = async (
+		templateName: string,
+		tag: string,
+		template: string
+	) => {
+		const fd = new FormData();
+		fd.append("tag", tag.slice(0, 50));
+		fd.append("template", template);
+		fd.append("engine", "handlebars");
+		const response = await this.client.request<MailgunTemplateResponse>({
+			method: "POST",
+			url: `/templates/${templateName}/versions`,
+			data: fd,
+		});
+
+		return response;
+	};
+
+	public write = async ({ displayName, name, html, digest }: EmailInfo) => {
+		const statePath = `${this.name}.${name}`;
+		const templateId = this.state.get(`${statePath}.id`) as string;
+		if (templateId) {
+			// Template already exists. Check for versions.
+			const existingDigest = this.state.get(`${statePath}.sha256`);
+			let versionId = this.state.get(`${statePath}.version`) as string;
+			if (versionId && digest === existingDigest) {
+				// A version already exists, and the last digest is unchanged.
+				console.log(`Mailgun: Template ${name} is unchanged.`);
+			} else {
+				// Update the template contents
+				const response = await this.createNewTemplateVersion(
+					name,
+					digest,
+					html
+				);
+				versionId = response.data.template.version.id;
+				this.state.set(`${statePath}.version`, versionId);
+				this.state.set(`${statePath}.sha256`, digest);
+				console.log(
+					`Sendgrid: New version (${versionId}) for template ${displayName} (${templateId})`
+				);
+			}
+		} else {
+			const templateResponse = await this.createNewTemplate(
+				name,
+				digest,
+				html,
+				""
+			);
+			const templateId = templateResponse.data.template.id;
+			this.state.set(`${statePath}.id`, templateId);
+			console.log(
+				`Mailgun: Created initial version of template ${name} (${templateId})`
+			);
+			this.state.set(
+				`${statePath}.version`,
+				templateResponse.data.template.version.id
+			);
+			this.state.set(`${statePath}.sha256`, digest);
+		}
 	};
 }
 

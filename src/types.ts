@@ -20,6 +20,18 @@ export interface MailgunTemplate {
 	createdAt: string;
 	createdBy: string;
 	id: string;
+	version: MailgunTemplateVersion;
+}
+
+export interface MailgunTemplateVersion {
+	tag: string;
+	template: string;
+	engine: string;
+	mjml: string;
+	createdAt: string;
+	id: string;
+	comment: string;
+	active: boolean;
 }
 
 export interface MailgunTemplateResponse {
