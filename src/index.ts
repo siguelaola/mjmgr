@@ -7,10 +7,10 @@ import { readdir, readFile } from "fs/promises";
 import i18next from "i18next";
 import { parse } from "node-html-parser";
 import { join, parse as parsePath, resolve } from "path";
+import { BaseBackend } from "./backends";
 import FilesystemBackend from "./backends/filesystem";
 import MailgunBackend from "./backends/mailgun";
 import SendgridBackend from "./backends/sendgrid";
-import { Backend } from "./types";
 
 type ValidationLevel = "strict" | "soft" | "skip";
 
@@ -75,7 +75,7 @@ export default (async () => {
 			const displayName = `${baseName} (${locale})`;
 			const digest = createHash("sha256").update(html).digest("hex");
 
-			backends.forEach(async (backend: Backend) => {
+			backends.forEach(async (backend: BaseBackend) => {
 				await backend.write({
 					name,
 					displayName,

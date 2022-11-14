@@ -2,12 +2,14 @@ import Conf from "conf";
 import { mkdirSync } from "fs";
 import { writeFile } from "fs/promises";
 import { join } from "path";
+import { BaseBackend } from ".";
 import { EmailInfo } from "../types";
 
-class FilesystemBackend {
+class FilesystemBackend extends BaseBackend {
 	basePath: string;
 
 	constructor(config: Conf) {
+		super(config);
 		this.basePath = config.get("output_dir", "./out/") as string;
 
 		try {

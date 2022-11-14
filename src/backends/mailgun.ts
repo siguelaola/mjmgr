@@ -2,16 +2,17 @@ import axios, { Axios } from "axios";
 import Conf from "conf";
 import FormData from "form-data";
 import { env } from "process";
+import { BaseBackend } from ".";
 import { EmailInfo, MailgunTemplateResponse } from "../types";
 
-class MailgunBackend {
+class MailgunBackend extends BaseBackend {
 	name = "mailgun";
 	apiKey: string;
 	domain: string;
-	state: Conf;
 	client: Axios;
 
 	constructor(config: Conf) {
+		super(config);
 		if (env.MAILGUN_API_KEY) {
 			this.apiKey = env.MAILGUN_API_KEY;
 		} else {
@@ -22,10 +23,6 @@ class MailgunBackend {
 		} else {
 			throw new Error("Environment variable MAILGUN_DOMAIN needs to be set");
 		}
-		this.state = new Conf({
-			projectName: "mjmgr",
-			configName: "mjmgr_state",
-		});
 		this.client = new Axios({
 			...axios.defaults,
 			baseURL: `https://api.mailgun.net/v3/${this.domain}`,

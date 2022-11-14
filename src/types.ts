@@ -1,5 +1,3 @@
-import type Conf from "conf";
-
 export interface EmailInfo {
 	name: string;
 	displayName: string;
@@ -7,11 +5,6 @@ export interface EmailInfo {
 	title: string;
 	html: string;
 	digest: string;
-}
-
-export interface Backend {
-	constructor: (conf: Conf) => void;
-	write: (info: EmailInfo) => Promise<void>;
 }
 
 export interface MailgunTemplate {

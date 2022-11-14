@@ -1,15 +1,16 @@
 import axios, { Axios } from "axios";
 import Conf from "conf";
 import { env } from "process";
+import { BaseBackend } from ".";
 import { EmailInfo } from "../types";
 
-class SendgridBackend {
+class SendgridBackend extends BaseBackend {
 	name = "sendgrid";
 	apiKey: string;
-	state: Conf;
 	client: Axios;
 
 	constructor(config: Conf) {
+		super(config);
 		const apiKey = env.SENDGRID_API_KEY;
 		if (!apiKey) {
 			throw new Error("Environment variable SENDGRID_API_KEY needs to be set");
@@ -18,10 +19,6 @@ class SendgridBackend {
 		} else {
 			this.apiKey = apiKey;
 		}
-		this.state = new Conf({
-			projectName: "mjmgr",
-			configName: "mjmgr_state",
-		});
 		this.client = new Axios({
 			...axios.defaults,
 			baseURL: "https://api.sendgrid.com/",
