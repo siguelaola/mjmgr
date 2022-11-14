@@ -1,4 +1,4 @@
-import axios, { Axios } from "axios";
+import axios, { Axios, AxiosResponse } from "axios";
 import Conf from "conf";
 import FormData from "form-data";
 import { env } from "process";
@@ -45,6 +45,10 @@ class MailgunBackend extends RemoteBackend {
 		});
 
 		return [response.data.template.id, response.data.template.version.id];
+	};
+
+	public errorResponseToString = async (response: AxiosResponse) => {
+		return response.data.message;
 	};
 
 	public createNewTemplateVersion = async (
